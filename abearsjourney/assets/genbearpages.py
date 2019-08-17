@@ -6,9 +6,9 @@ import sys
 import pdb
 import os
 
-instagramfile = r"C:\git\sumitsumit.github.io\abearsjourney\assets\instagramlist.txt"
-templatefile = r"C:\git\sumitsumit.github.io\abearsjourney\assets\index_template.html"
-outdir = r"C:\git\sumitsumit.github.io\abearsjourney"
+instagramfile = r"C:\git\github\sumitsumit.github.io\abearsjourney\assets\instagramlist.txt"
+templatefile = r"C:\git\github\sumitsumit.github.io\abearsjourney\assets\index_template.html"
+outdir = r"C:\git\github\sumitsumit.github.io\abearsjourney"
 
 
 def readlines(filename):
@@ -36,15 +36,19 @@ def urlfrompagenum(pagenum):
 def main(argv):
     previewmode = False
     if '-preview' in argv:
-        print "WARNING: Preview Mode; IG script suppressed"
+        print("WARNING: Preview Mode; IG script suppressed")
         previewmode = True
     numbearsperpage = 3
-    igblocks = readlines(instagramfile)
+    
+    fp = open(instagramfile, 'r', encoding='iso-8859-1')
+    igblocks = [line.strip() for line in fp.readlines()]
+    fp.close()
+
     numigblocks = len(igblocks)
-    print "Found",numigblocks,"instagram blocks"
+    print(f"Found {numigblocks} instagram blocks")
     templatetext = "\n".join(readlines(templatefile))
-    numpages = len(igblocks)/numbearsperpage
-    print "Generating",numpages,"pages"
+    numpages = int(len(igblocks)/numbearsperpage)
+    print(f"Generating {numpages} pages")
     
     if len(igblocks) % numbearsperpage != 0:
         numpages += 1
@@ -77,8 +81,8 @@ def main(argv):
         pagetext = replacetext(templatetext, replacedict)
         # write to file
         outfile = outdir + os.path.sep + urlfrompagenum(pagenum)
-        print "generating",outfile
-        ofp = open(outfile, "w")
+        print(f"generating {outfile}")
+        ofp = open(outfile, "w", encoding='iso-8859-1')
         ofp.write(pagetext)
         ofp.close()
 

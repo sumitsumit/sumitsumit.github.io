@@ -5,10 +5,13 @@
 import sys
 import pdb
 import os
+import subprocess
 
 instagramfile = r"C:\git\github\sumitsumit.github.io\abearsjourney\assets\instagramlist.txt"
+bearstoryfile = r"C:\git\github\sumitsumit.github.io\abearsjourney\assets\bearstory.txt"
 templatefile = r"C:\git\github\sumitsumit.github.io\abearsjourney\assets\index_template.html"
 outdir = r"C:\git\github\sumitsumit.github.io\abearsjourney"
+imgpath = "images/story"
 
 
 def readlines(filename):
@@ -33,39 +36,49 @@ def urlfrompagenum(pagenum):
         url = "index"+str(pagenum)+".html"
     return url
 
+def frame_html(frame_tuple):
+    """Takes frame_tuple = (num_str, caption, img_url) and creates HTML for that frame."""
+    # see css/main.css for img.bearframe and div.bearcaption CSS
+    html_str = ''
+    html_str += f'<img class="bearframe" src="{frame_tuple[2]}" />'
+    html_str += f'<br /><div class="bearcaption">{frame_tuple[1]}</div>'
+    return html_str
+
 def main(argv):
     previewmode = False
     if '-preview' in argv:
-        print("WARNING: Preview Mode; IG script suppressed")
+        print("WARNING: Preview Mode")
         previewmode = True
     numbearsperpage = 3
     
-    fp = open(instagramfile, 'r', encoding='iso-8859-1')
-    igblocks = [line.strip() for line in fp.readlines()]
+    fp = open(bearstoryfile, 'r', encoding='iso-8859-1')
+    frame_tuples = []
+    for line in fp.readlines():
+        num_str = line.split(',')[0]
+        caption = ','.join(line.split(',')[1:])
+        img_path = imgpath+'/'+num_str+'.jpg'
+        if os.path.exists(os.path.join(outdir,img_path)):
+            frame_tuples.append( (num_str, caption, img_path) )
     fp.close()
 
-    numigblocks = len(igblocks)
-    print(f"Found {numigblocks} instagram blocks")
+    num_frames = len(frame_tuples)
+    print(f"Found {num_frames} frames")
     templatetext = "\n".join(readlines(templatefile))
-    numpages = int(len(igblocks)/numbearsperpage)
+    numpages = int(num_frames/numbearsperpage)
+    if num_frames % numbearsperpage != 0:
+        numpages += 1
     print(f"Generating {numpages} pages")
     
-    if len(igblocks) % numbearsperpage != 0:
-        numpages += 1
     for pagenum in range(numpages):
         # set up replacedict
         replacedict = {}
-        if previewmode:
-            replacedict['$igscript'] = ''
-        else:
-            replacedict['$igscript'] = '<script async defer src="//www.instagram.com/embed.js"></script>'
-        replacedict['$bear0'] = igblocks[pagenum*3 + 0]
-        if pagenum*3 + 1 < numigblocks:
-            replacedict['$bear1'] = igblocks[pagenum*3 + 1]
+        replacedict['$bear0'] = frame_html(frame_tuples[pagenum*3 + 0])
+        if pagenum*3 + 1 < num_frames:
+            replacedict['$bear1'] = frame_html(frame_tuples[pagenum*3 + 1])
         else:
             replacedict['$bear1'] = ''
-        if pagenum*3 + 2 < numigblocks:
-            replacedict['$bear2'] = igblocks[pagenum*3 + 2]
+        if pagenum*3 + 2 < num_frames:
+            replacedict['$bear2'] = frame_html(frame_tuples[pagenum*3 + 2])
         else:
             replacedict['$bear2'] = ''
         if pagenum > 0:
@@ -85,6 +98,8 @@ def main(argv):
         ofp = open(outfile, "w", encoding='iso-8859-1')
         ofp.write(pagetext)
         ofp.close()
+    # Open the page
+    subprocess.Popen(f'{os.path.join(outdir, "index.html")}', shell=True)
 
 if __name__ == '__main__':
     main(sys.argv)

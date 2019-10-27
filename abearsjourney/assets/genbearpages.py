@@ -39,9 +39,10 @@ def urlfrompagenum(pagenum):
 def frame_html(frame_tuple):
     """Takes frame_tuple = (num_str, caption, img_url) and creates HTML for that frame."""
     # see css/main.css for img.bearframe and div.bearcaption CSS
-    html_str = ''
+    html_str = '<div class="bearcontainer">'
     html_str += f'<img class="bearframe" src="{frame_tuple[2]}" />'
     html_str += f'<br /><div class="bearcaption">{frame_tuple[1]}</div>'
+    html_str += '</div>'
     return html_str
 
 def main(argv):
